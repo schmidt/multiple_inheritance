@@ -151,7 +151,7 @@ context "An instance of a subclass of A and B" do
   specify "should be able to use methods from A and B using own instance variables" do
     @instance.init_access
     @instance.inst_minus.should == 2
-    @instance.inst_plus.should == 2
+    @instance.inst_plus.should == 4
   end
 end
 

@@ -21,9 +21,10 @@
 #   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 #   IN THE SOFTWARE.
 
-#   Version 0.1.1
-#
 #   Changelog
+#   0.1.2
+#    - added naive support for instance variables
+#   0.1.1
 #    - moved Multiple to module Kernel - so it's included in the class hierarchy
 
 module Kernel
@@ -55,9 +56,25 @@ module Kernel
         end
       end
         
+      def copy_instance_variables( from, to )
+        from.instance_variables.each do | inst_var |
+          to.instance_variable_set( inst_var, 
+              from.instance_variable_get( inst_var ) )
+        end
+      end
+      def copy_instance_variables_to_parent( parent_instance )
+        copy_instance_variables( self, parent_instance )
+      end
+      def copy_instance_variables_from_parent( parent_instance )
+        copy_instance_variables( parent_instance, self )
+      end
+      
       def send( method_name, *arguments )
         if parent_instance = parent_instance_for( method_name ) 
-          parent_instance.send( method_name, *arguments )
+          copy_instance_variables_to_parent( parent_instance )
+          return_value = parent_instance.send( method_name, *arguments )
+          copy_instance_variables_from_parent( parent_instance )
+          return_value
         else
           self.method_missing( method_name, *arguments )
         end
