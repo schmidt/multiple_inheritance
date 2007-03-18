@@ -5,6 +5,9 @@ class A
   def a; "a"; end; 
   def left_first; a; end
   def own; a; end
+  def block_use( &block )
+    block.call + 1
+  end
   def inst_plus; @a + 1; end
   def inspect; a; end
   def self.inherited( subclass ); @subclasses << subclass end
@@ -37,6 +40,7 @@ class AB < Multiple( A, B )
   def method_missing( method_name, *arguments )
     if method_name.to_s =~ /hase/; method_name.to_s; else; super; end
   end
+  def block_call; block_use { 1 } + 1; end
 end
 
 context "A subclass of A and B" do
@@ -152,6 +156,10 @@ context "An instance of a subclass of A and B" do
     @instance.init_access
     @instance.inst_minus.should == 2
     @instance.inst_plus.should == 4
+  end
+
+  specify "should be able to use blocks for methods in superclasses" do
+    @instance.block_call.should == 3
   end
 end
 

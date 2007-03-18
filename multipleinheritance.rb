@@ -22,6 +22,8 @@
 #   IN THE SOFTWARE.
 
 #   Changelog
+#   0.1.3
+#    - added support for blocks 
 #   0.1.2
 #    - added naive support for instance variables
 #   0.1.1
@@ -31,15 +33,15 @@ module Kernel
   def Multiple( *superklasses )
     c = Class.new do
 
-      def initialize( *arguments )
+      def initialize( *arguments, &block )
         # ugly, but retrieves the value saved below
         myparents = self.class.superclass.instance_variable_get(:@parents)      
 
         # initialize each parent class
         @parents = []
         myparents.each do |klass|
-          # note: the constructors better be compatible, otherwise this will error
-          @parents << klass.new( *arguments )
+        # note: the constructors better be compatible, otherwise this will error
+          @parents << klass.new( *arguments, &block )
         end
       end
 
@@ -62,27 +64,37 @@ module Kernel
               from.instance_variable_get( inst_var ) )
         end
       end
+      
       def copy_instance_variables_to_parent( parent_instance )
         copy_instance_variables( self, parent_instance )
       end
+
       def copy_instance_variables_from_parent( parent_instance )
         copy_instance_variables( parent_instance, self )
       end
+
+      def parent_call( parent_instance, &block )
+        copy_instance_variables_to_parent( parent_instance )
+        return_value = block.call
+        copy_instance_variables_from_parent( parent_instance )
+        return_value
+      end
       
-      def send( method_name, *arguments )
+      def send( method_name, *arguments, &block )
         if parent_instance = parent_instance_for( method_name ) 
-          copy_instance_variables_to_parent( parent_instance )
-          return_value = parent_instance.send( method_name, *arguments )
-          copy_instance_variables_from_parent( parent_instance )
-          return_value
+          parent_call( parent_instance ) do 
+            parent_instance.send( method_name, *arguments, &block )
+          end
         else
-          self.method_missing( method_name, *arguments )
+          self.method_missing( method_name, *arguments, &block )
         end
       end
 
-      def method_missing( method_name, *arguments )
-        parent_for( :method_missing, @parents.first ).method_missing( 
-            method_name, *arguments )
+      def method_missing( method_name, *arguments, &block )
+        parent_instance = parent_for( :method_missing, @parents.first )
+        parent_call( parent_instance ) do 
+          parent_instance.method_missing( method_name , *arguments, &block )
+        end
       end
 
       def respond_to?( meth )
@@ -140,7 +152,6 @@ module Kernel
           self.parent_class_for( :const_missing ).const_missing( constant_name )
         end
       end
-
     end
     
     # we need to save the parent classes so they can be initialized when 
@@ -148,14 +159,15 @@ module Kernel
     c.instance_variable_set( :@parents, superklasses )
 
     # register all implemented calls up to Object in this class to use send
+    # FIXME: had to use class_eval with string - otherwise no blocks possible
     # TODO: what should happen, if some of them are defined lateron
     c.ancestors.each do | ancestor |
       ancestor.instance_methods( false ).each do | method_name |
-        c.class_eval do 
-          define_method( method_name ) do | *arguments |
-            send( method_name, *arguments )
+        c.class_eval %Q{
+          def #{method_name}( *arguments, &block )
+            send( :#{method_name}, *arguments, &block )
           end
-        end
+        }
       end
       break if ancestor == Object
     end
