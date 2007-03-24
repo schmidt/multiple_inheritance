@@ -22,6 +22,11 @@
 #   IN THE SOFTWARE.
 
 #   Changelog
+#   0.1.4
+#    - added caching of created mi classes
+#    - changed api - `Multiple( A, B )` is now `MultipleInheritance[ A, B ]`
+#    - everything resides within the module now so the global namespace 
+#      is not poisoned anymore
 #   0.1.3
 #    - added support for blocks 
 #   0.1.2
@@ -29,10 +34,15 @@
 #   0.1.1
 #    - moved Multiple to module Kernel - so it's included in the class hierarchy
 
-module Kernel
-  def Multiple( *superklasses )
-    c = Class.new do
+module MultipleInheritance 
+  MI_CLASSES = {}
 
+  def self.[]( *superklasses )
+    MI_CLASSES[ superklasses ] ||= create_mi_class_for( superklasses )
+  end
+  
+  def self.create_mi_class_for( superklasses )
+    c = Class.new do
       def initialize( *arguments, &block )
         # ugly, but retrieves the value saved below
         myparents = self.class.superclass.instance_variable_get(:@parents)      
@@ -44,7 +54,7 @@ module Kernel
           @parents << klass.new( *arguments, &block )
         end
       end
-
+      
       def parent_class_for( method_name )
         self.class.ancestors.find do | ancestor |
           ancestor.instance_methods( false ).include?( method_name.to_s )
@@ -72,12 +82,12 @@ module Kernel
       def copy_instance_variables_from_parent( parent_instance )
         copy_instance_variables( parent_instance, self )
       end
-
+ 
       def parent_call( parent_instance, &block )
         copy_instance_variables_to_parent( parent_instance )
-        return_value = block.call
+        value = block.call
         copy_instance_variables_from_parent( parent_instance )
-        return_value
+        value
       end
       
       def send( method_name, *arguments, &block )
@@ -106,12 +116,12 @@ module Kernel
       end
 
       def kind_of?( klass )
-        klass == self.class or self.class.ancestors.include? klass 
+        klass == self.class or self.class.ancestors.include?( klass )
       end
 
       def self.to_s
         if self.instance_variable_get( :@parents )
-          "MultipleInheritance [" + self.superclasses.join( ", " ) + "]"
+          "MultipleInheritance[ " + self.superclasses.join( ", " ) + " ]"
         else
           super
         end
@@ -171,45 +181,7 @@ module Kernel
       end
       break if ancestor == Object
     end
-    
-    return c
-  end
-end
 
-if __FILE__ == $0
-  require "test/unit"
-
-  class A
-    def a; "a"; end
-  end
-  class B 
-    def b; "b"; end
-  end
-  class C 
-    def c; "c"; end
-  end
-  class Union < Multiple(A, B, C)
-    def foo; "foo"; end
-  end
-
-  class Tests < Test::Unit::TestCase
-
-    def setup
-      @t = Union.new
-    end
-
-    def test_respond
-      assert(@t.respond_to?(:a), "responds to a")
-      assert(@t.respond_to?(:b), "responds to b")
-      assert(@t.respond_to?(:c), "responds to c")
-      assert(@t.respond_to?(:foo), "responds to foo")
-    end
-
-    def test_calls
-      assert_equal(@t.a, "a", "returns a")
-      assert_equal(@t.b, "b", "returns b")
-      assert_equal(@t.c, "c", "returns c")
-      assert_equal(@t.foo, "foo", "returns foo")
-    end
+    c
   end
 end
