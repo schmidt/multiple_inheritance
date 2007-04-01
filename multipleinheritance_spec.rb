@@ -21,7 +21,9 @@ class B
   def own; b; end
   def inst_minus; @a - 1; end
   def to_s; b; end
-  def method_missing( method_name, *arguments ); method_name.to_s.upcase; end
+  def method_missing( method_name, *arguments )
+    if method_name.to_s =~ /pferde/; method_name.to_s.upcase; else; super; end
+  end
   def self.inherited( subclass ); @subclasses << subclass end
   self.instance_variable_set( :@subclasses, [] )
 end
@@ -144,14 +146,14 @@ context "An instance of a subclass of `A` and `B`" do
   end
 
   specify "should answer `respond_to?( 'some method in A' )` with `true`" do
-    @instance.should_respond_to :a
+    @instance.respond_to?( :a ).should == true
   end
   specify "should answer `respond_to?( 'some method in B' )` with `true`" do
-    @instance.should_respond_to :b
+    @instance.respond_to?( :b ).should == true
   end
   specify "should answer `respond_to?( 'some method in Object' )` " + 
           "with `true`" do
-    @instance.should_respond_to :object_id
+    @instance.respond_to?( :object_id ).should == true
   end
 
   specify "should be able to access constants defined in " + 
@@ -184,5 +186,24 @@ context "When `A` and `B` are subclassed by a class, they" do
   specify "should be informed via `self.inherited( subclass )`" do
     A.instance_variable_get( :@subclasses ).should == [ AB ]
     B.instance_variable_get( :@subclasses ).should == [ AB ]
+  end
+end
+
+context "When `A` or `B` are extended after a subclass of both " +
+        "of them was created, the subclass" do
+  setup do
+    @instance = AB.new
+  end
+  
+  specify "should get a NoMethodError when trying to access the " + 
+          "method before" do
+    lambda { @instance.new_one }.should( raise_error( NoMethodError ) )
+  end
+  
+  specify "should be able to access the method correctly afterwards" do
+    class B; def new_one; b; end; end
+    @instance.new_one.should == @instance.b
+    class A; def new_one; a; end; end
+    @instance.new_one.should == @instance.a
   end
 end
