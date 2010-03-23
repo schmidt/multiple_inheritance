@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../lib/multipleinheritance'
+require File.dirname(__FILE__) + '/../lib/multiple_inheritance'
 
 class A
   A_CONSTANT = "a"
