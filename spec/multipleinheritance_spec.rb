@@ -1,4 +1,4 @@
-require 'multipleinheritance'
+require File.dirname(__FILE__) + '/../lib/multipleinheritance'
 
 class A
   A_CONSTANT = "a"
@@ -52,24 +52,24 @@ context "A subclass of `A` and `B`" do
   
   specify "should not list constants defined in its superclasses, " + 
           "when sent `constants`" do
-    AB.constants.should_not_include A::A_CONSTANT
-    AB.constants.should_not_include B::B_CONSTANT
+    AB.constants.should_not include(A::A_CONSTANT)
+    AB.constants.should_not include(B::B_CONSTANT)
   end
 
   specify "should not answer `true` to `const_defined?` for " +
           "constants defined in `A` or `B`" do
-    AB.should_not_const_defined :A_CONSTANT
-    AB.should_not_const_defined :B_CONSTANT
+    AB.should_not be_const_defined(:A_CONSTANT)
+    AB.should_not be_const_defined(:B_CONSTANT)
   end
   specify "should answer `true` to `const_defined?` for " + 
           "constants defined in it" do
-    AB.should_const_defined :AB_DEFINED_CONSTANT
+    AB.should be_const_defined(:AB_DEFINED_CONSTANT)
   end
 
   specify "should list methods of its superclasses in " + 
           "`instance_methods( true )`" do
-    AB.instance_methods.should_include "a"
-    AB.instance_methods.should_include "b"
+    AB.instance_methods.should include("a")
+    AB.instance_methods.should include("b")
   end
 
   specify "should have the same `superclass` as another subclass of " +
@@ -85,9 +85,9 @@ end
 
 context "The Ancestors of a subclass of `A` and `B`" do
   specify "should contain `A`, `B` and `Object`" do
-    AB.ancestors.should_include A
-    AB.ancestors.should_include B
-    AB.ancestors.should_include Object
+    AB.ancestors.should include(A)
+    AB.ancestors.should include(B)
+    AB.ancestors.should include(Object)
   end
   specify "should have `A` as first element" do
     AB.ancestors.first.should == A
@@ -96,27 +96,27 @@ context "The Ancestors of a subclass of `A` and `B`" do
     AB.ancestors.size.should == AB.ancestors.uniq.size
   end
   specify "should contain `A` before `B`" do
-    AB.ancestors.index( A ).should < AB.ancestors.index( B )
+    AB.ancestors.index(A).should < AB.ancestors.index(B)
   end
   specify "should contain `B` before `Object`" do
-    AB.ancestors.index( B ).should < AB.ancestors.index( Object )
+    AB.ancestors.index(B).should < AB.ancestors.index(Object)
   end
 end
 
 context "An instance of a subclass of `A` and `B`" do
-  setup do
+  before do
     @instance = AB.new
   end
   
   specify "should be kind of its class" do
-    @instance.should( be_kind_of( AB ) )
+    @instance.should be_kind_of(AB)
   end
   specify "should be kind of its super classes" do
-    @instance.should( be_kind_of( A ) )
-    @instance.should( be_kind_of( B ) )
+    @instance.should be_kind_of(A)
+    @instance.should be_kind_of(B)
   end
   specify "should be kind of its super super classes" do
-    @instance.should( be_kind_of( Object ) )
+    @instance.should be_kind_of(Object)
   end
   
   specify "should prefer its own methods over inherited ones" do
@@ -146,14 +146,14 @@ context "An instance of a subclass of `A` and `B`" do
   end
 
   specify "should answer `respond_to?( 'some method in A' )` with `true`" do
-    @instance.respond_to?( :a ).should == true
+    @instance.respond_to?(:a).should be_true
   end
   specify "should answer `respond_to?( 'some method in B' )` with `true`" do
-    @instance.respond_to?( :b ).should == true
+    @instance.respond_to?(:b).should be_true
   end
   specify "should answer `respond_to?( 'some method in Object' )` " + 
           "with `true`" do
-    @instance.respond_to?( :object_id ).should == true
+    @instance.respond_to?(:object_id).should be_true
   end
 
   specify "should be able to access constants defined in " + 
@@ -166,8 +166,8 @@ context "An instance of a subclass of `A` and `B`" do
   end
   
   specify "should list methods of its superclasses in `methods`" do
-    @instance.methods.should_include "a"
-    @instance.methods.should_include "b"
+    @instance.methods.should include("a")
+    @instance.methods.should include("b")
   end
 
   specify "should be able to use methods from `A` and `B` " + 
@@ -184,20 +184,20 @@ end
 
 context "When `A` and `B` are subclassed by a class, they" do
   specify "should be informed via `self.inherited( subclass )`" do
-    A.instance_variable_get( :@subclasses ).should == [ AB ]
-    B.instance_variable_get( :@subclasses ).should == [ AB ]
+    A.instance_variable_get(:@subclasses).should == [ AB ]
+    B.instance_variable_get(:@subclasses).should == [ AB ]
   end
 end
 
 context "When `A` or `B` are extended after a subclass of both " +
         "of them was created, the subclass" do
-  setup do
+  before do
     @instance = AB.new
   end
   
   specify "should get a NoMethodError when trying to access the " + 
           "method before" do
-    lambda { @instance.new_one }.should( raise_error( NoMethodError ) )
+    lambda { @instance.new_one }.should raise_error(NoMethodError)
   end
   
   specify "should be able to access the method correctly afterwards" do

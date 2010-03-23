@@ -1,0 +1,15 @@
+0.1.5
+ - added `method_added` callback to superclasses to ensure the correct 
+   handling of open classes
+ - added caching for class lookup
+0.1.4
+ - added caching of created mi classes
+ - changed api - `Multiple( A, B )` is now `MultipleInheritance[ A, B ]`
+ - everything resides within the module now so the global namespace 
+   is not poisoned anymore
+0.1.3
+ - added support for blocks 
+0.1.2
+ - added naive support for instance variables
+0.1.1
+ - moved Multiple to module Kernel - so it's included in the class hierarchy
