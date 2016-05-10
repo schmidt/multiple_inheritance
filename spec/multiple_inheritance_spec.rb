@@ -47,59 +47,60 @@ end
 
 context "A subclass of `A` and `B`" do
   specify "should answer with `[A, B]` when sended `superclasses`" do
-    AB.superclasses.should == [A, B]
+    expect(AB.superclasses).to eq([A, B])
   end
 
   specify "should not list constants defined in its superclasses, " +
           "when sent `constants`" do
-    AB.constants.should_not include(A::A_CONSTANT)
-    AB.constants.should_not include(B::B_CONSTANT)
+    expect(AB.constants).to_not include(A::A_CONSTANT)
+    expect(AB.constants).to_not include(B::B_CONSTANT)
   end
 
   specify "should not answer `true` to `const_defined?` for " +
           "constants defined in `A` or `B`" do
-    AB.should_not be_const_defined(:A_CONSTANT)
-    AB.should_not be_const_defined(:B_CONSTANT)
+    expect(AB).to_not be_const_defined(:A_CONSTANT)
+    expect(AB).to_not be_const_defined(:B_CONSTANT)
   end
   specify "should answer `true` to `const_defined?` for " +
           "constants defined in it" do
-    AB.should be_const_defined(:AB_DEFINED_CONSTANT)
+    expect(AB).to be_const_defined(:AB_DEFINED_CONSTANT)
   end
 
   specify "should list methods of its superclasses in " +
           "`instance_methods( true )`" do
-    AB.instance_methods.should include(:a)
-    AB.instance_methods.should include(:b)
+    expect(AB.instance_methods).to include(:a)
+    expect(AB.instance_methods).to include(:b)
   end
 
   specify "should have the same `superclass` as another subclass of " +
           "`A` and `B`" do
-    AB.superclass.should == MultipleInheritance[ A, B ]
+    expect(AB.superclass).to eq MultipleInheritance[ A, B ]
   end
 
   specify "should have the a different `superclass` than a subclass " +
           "`B` and `A`" do
-    AB.superclass.should_not == MultipleInheritance[ B, A ]
+    expect(AB.superclass).to_not eq MultipleInheritance[ B, A ]
   end
 end
 
 context "The Ancestors of a subclass of `A` and `B`" do
   specify "should contain `A`, `B` and `Object`" do
-    AB.ancestors.should include(A)
-    AB.ancestors.should include(B)
-    AB.ancestors.should include(Object)
+    expect(AB.ancestors).to include(A)
+    expect(AB.ancestors).to include(B)
+    expect(AB.ancestors).to include(Object)
   end
+
   specify "should have `A` as first element" do
-    AB.ancestors.first.should == A
+    expect(AB.ancestors.first).to be(A)
   end
   specify "should not include double entries" do
-    AB.ancestors.size.should == AB.ancestors.uniq.size
+    expect(AB.ancestors.size).to be(AB.ancestors.uniq.size)
   end
   specify "should contain `A` before `B`" do
-    AB.ancestors.index(A).should < AB.ancestors.index(B)
+    expect(AB.ancestors.index(A)).to be < AB.ancestors.index(B)
   end
   specify "should contain `B` before `Object`" do
-    AB.ancestors.index(B).should < AB.ancestors.index(Object)
+    expect(AB.ancestors.index(B)).to be < AB.ancestors.index(Object)
   end
 end
 
@@ -109,83 +110,94 @@ context "An instance of a subclass of `A` and `B`" do
   end
 
   specify "should be kind of its class" do
-    @instance.should be_kind_of(AB)
+    expect(@instance).to be_kind_of(AB)
   end
+
   specify "should be kind of its super classes" do
-    @instance.should be_kind_of(A)
-    @instance.should be_kind_of(B)
+    expect(@instance).to be_kind_of(A)
+    expect(@instance).to be_kind_of(B)
   end
   specify "should be kind of its super super classes" do
-    @instance.should be_kind_of(Object)
+    expect(@instance).to be_kind_of(Object)
   end
 
   specify "should prefer its own methods over inherited ones" do
-    @instance.own.should == "ab"
+    expect(@instance.own).to eq("ab")
   end
+
   specify "should be able to call inherited methods" do
-    @instance.a.should == "a"
-    @instance.b.should == "b"
+    expect(@instance.a).to eq("a")
+    expect(@instance.b).to eq("b")
   end
+
   specify "should be able to combine inherited calls" do
-    @instance.ab.should == "ab"
+    expect(@instance.ab).to eq("ab")
   end
+
   specify "should prefer methods defined in `A` over `Object`'s" do
-    @instance.inspect.should == "a"
+    expect(@instance.inspect).to eq("a")
   end
+
   specify "should prefer methods defined in `B` over `Object`'s" do
-    @instance.to_s.should == "b"
+    expect(@instance.to_s).to eq("b")
   end
+
   specify "should prefer methods defined in `A` over `B`'s (left first)" do
-    @instance.left_first.should == "a"
+    expect(@instance.left_first).to eq("a")
   end
+
   specify "should be able to use `method_missing`" do
-    @instance.hasenfuss.should == "hasenfuss"
+    expect(@instance.hasenfuss).to eq("hasenfuss")
   end
+
   specify "should be able to use `method_missing` in one of its parents" do
-    @instance.pferdefuss.should == "PFERDEFUSS"
+    expect(@instance.pferdefuss).to eq("PFERDEFUSS")
   end
 
   specify "should answer `respond_to?( 'some method in A' )` with `true`" do
-    @instance.respond_to?(:a).should be true
+    expect(@instance.respond_to?(:a)).to eq(true)
   end
+
   specify "should answer `respond_to?( 'some method in B' )` with `true`" do
-    @instance.respond_to?(:b).should be true
+    expect(@instance.respond_to?(:b)).to eq(true)
   end
+
   specify "should answer `respond_to?( 'some method in Object' )` " +
           "with `true`" do
-    @instance.respond_to?(:object_id).should be true
+    expect(@instance.respond_to?(:object_id)).to eq(true)
   end
 
   specify "should be able to access constants defined in " +
           "superclasses directly" do
-    @instance.access_constant_from_A.should == A::A_CONSTANT
-    @instance.access_constant_from_B.should == B::B_CONSTANT
+    expect(@instance.access_constant_from_A).to eq(A::A_CONSTANT)
+    expect(@instance.access_constant_from_B).to eq(B::B_CONSTANT)
   end
+
   specify "should be able to use `const_missing`" do
-    @instance.access_constant_from_AB.should == A::A_CONSTANT
+    expect(@instance.access_constant_from_AB).to eq(A::A_CONSTANT)
   end
 
   specify "should list methods of its superclasses in `methods`" do
-    @instance.methods.should include(:a)
-    @instance.methods.should include(:b)
+    expect(@instance.methods).to include(:a)
+    expect(@instance.methods).to include(:b)
   end
 
   specify "should be able to use methods from `A` and `B` " +
           "using own instance variables" do
     @instance.init_access
-    @instance.inst_minus.should == 2
-    @instance.inst_plus.should == 4
+    expect(@instance.inst_minus).to eq(2)
+    expect(@instance.inst_plus).to eq(4)
   end
 
   specify "should be able to use blocks for methods in superclasses" do
-    @instance.block_call.should == 3
+    expect(@instance.block_call).to eq(3)
   end
 end
 
 context "When `A` and `B` are subclassed by a class, they" do
   specify "should be informed via `self.inherited( subclass )`" do
-    A.instance_variable_get(:@subclasses).should == [ AB ]
-    B.instance_variable_get(:@subclasses).should == [ AB ]
+    expect(A.instance_variable_get(:@subclasses)).to eq([ AB ])
+    expect(B.instance_variable_get(:@subclasses)).to eq([ AB ])
   end
 end
 
@@ -197,13 +209,13 @@ context "When `A` or `B` are extended after a subclass of both " +
 
   specify "should get a NoMethodError when trying to access the " +
           "method before" do
-    lambda { @instance.new_one }.should raise_error(NoMethodError)
+    expect { @instance.new_one }.to raise_error(NoMethodError)
   end
 
   specify "should be able to access the method correctly afterwards" do
     class B; def new_one; b; end; end
-    @instance.new_one.should == @instance.b
+    expect(@instance.new_one).to eq(@instance.b)
     class A; def new_one; a; end; end
-    @instance.new_one.should == @instance.a
+    expect(@instance.new_one).to eq(@instance.a)
   end
 end
