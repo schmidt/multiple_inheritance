@@ -146,14 +146,14 @@ context "An instance of a subclass of `A` and `B`" do
   end
 
   specify "should answer `respond_to?( 'some method in A' )` with `true`" do
-    @instance.respond_to?(:a).should be_true
+    @instance.respond_to?(:a).should be true
   end
   specify "should answer `respond_to?( 'some method in B' )` with `true`" do
-    @instance.respond_to?(:b).should be_true
+    @instance.respond_to?(:b).should be true
   end
   specify "should answer `respond_to?( 'some method in Object' )` " +
           "with `true`" do
-    @instance.respond_to?(:object_id).should be_true
+    @instance.respond_to?(:object_id).should be true
   end
 
   specify "should be able to access constants defined in " +
