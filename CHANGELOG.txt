@@ -1,3 +1,6 @@
+0.2.0
+ - Update to Ruby 2.2, drop support for Ruby 1.8
+ - Provide basic gemspec to ease installation in Bundler environments
 0.1.5
  - added `method_added` callback to superclasses to ensure the correct
    handling of open classes
