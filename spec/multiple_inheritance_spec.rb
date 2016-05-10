@@ -68,8 +68,8 @@ context "A subclass of `A` and `B`" do
 
   specify "should list methods of its superclasses in " +
           "`instance_methods( true )`" do
-    AB.instance_methods.should include("a")
-    AB.instance_methods.should include("b")
+    AB.instance_methods.should include(:a)
+    AB.instance_methods.should include(:b)
   end
 
   specify "should have the same `superclass` as another subclass of " +
@@ -166,8 +166,8 @@ context "An instance of a subclass of `A` and `B`" do
   end
 
   specify "should list methods of its superclasses in `methods`" do
-    @instance.methods.should include("a")
-    @instance.methods.should include("b")
+    @instance.methods.should include(:a)
+    @instance.methods.should include(:b)
   end
 
   specify "should be able to use methods from `A` and `B` " +

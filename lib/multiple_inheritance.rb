@@ -147,13 +147,12 @@ module MultipleInheritance
           end
 
           def _parent_class_for_instance_method( method_name_sym )
-            method_name = method_name_sym.to_s
             ancestors.find do | ancestor |
-              ancestor.public_instance_methods( false ).include?( 
-                                                              method_name ) or
-              ancestor.protected_instance_methods( false ).include?( 
-                                                              method_name ) or
-              ancestor.private_instance_methods( false ).include?( method_name )
+              ancestor.public_instance_methods( false ).include?(
+                                                              method_name_sym ) or
+              ancestor.protected_instance_methods( false ).include?(
+                                                              method_name_sym ) or
+              ancestor.private_instance_methods( false ).include?( method_name_sym )
             end
           end
 
@@ -163,17 +162,16 @@ module MultipleInheritance
           end
 
           def _parent_class_for_class_method( method_name_sym )
-            method_name = method_name_sym.to_s
             ancestors.find do | ancestor |
-              ancestor.public_methods( false ).include?( method_name ) or
-              ancestor.protected_methods( false ).include?( method_name ) or
-              ancestor.private_methods( false ).include?( method_name )
+              ancestor.public_methods( false ).include?( method_name_sym ) or
+              ancestor.protected_methods( false ).include?( method_name_sym ) or
+              ancestor.private_methods( false ).include?( method_name_sym )
             end
           end
 
           def const_missing( constant_name )
             if right_klass = superclasses.find do | superklass |
-                superklass.constants.include?( constant_name.to_s )
+                superklass.constants.include?( constant_name )
               end
               right_klass.const_get( constant_name )
             else
@@ -191,7 +189,7 @@ module MultipleInheritance
 
           def define_blank_method( method_name, modifier = :public )
             invalidate_caches
-            unless instance_methods( false ).include? method_name.to_s
+            unless instance_methods( false ).include? method_name
               class_eval %Q{
                 def #{method_name}( *arguments, &block )
                   send( :#{method_name}, *arguments, &block )
