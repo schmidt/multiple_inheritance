@@ -1,8 +1,13 @@
+PATH
+  remote: .
+  specs:
+    multiple_inheritance (0.2.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
-    byebug (8.2.5)
     diff-lcs (1.2.5)
+    rake (10.4.2)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
       rspec-expectations (~> 3.4.0)
@@ -21,7 +26,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  byebug
+  multiple_inheritance!
+  rake
   rspec
 
 BUNDLED WITH
