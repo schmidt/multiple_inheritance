@@ -1,26 +1,26 @@
-module MultipleInheritance 
+module MultipleInheritance
   CLASSES = {}
 
   class << self
     def []( *superklasses )
       CLASSES[ superklasses ] ||= create_mi_class_for( superklasses )
     end
-    
+
     def create_mi_class_for( superklasses )
       c = Class.new do
 
         attr_accessor :_parentinstances
         attr_accessor :_lookup_cache
-        
+
         def initialize( *arguments, &block )
-        # initialize each parent class
+          # initialize each parent class
           self._parentinstances = self.class.superclasses.collect do |klass|
-        # note: the constructors better be compatible, otherwise this will error
+            # note: the constructors better be compatible, otherwise this will error
             klass.new( *arguments, &block )
           end
           self._lookup_cache = {}
         end
-        
+
         def parent_class_for_instance_method( method_name_sym, if_nil = nil )
           self.class.parent_class_for_instance_method( method_name_sym, if_nil )
         end
@@ -28,10 +28,10 @@ module MultipleInheritance
 
         def parent_instance_for_instance_method( method_name_sym, if_nil = nil )
           parent_class = parent_class_for_instance_method( method_name_sym )
-          ( _lookup_cache[parent_class] ||= 
+          ( _lookup_cache[parent_class] ||=
                 parent_instance_for_class( parent_class ) ) || if_nil
         end
-        
+
         def parent_instance_for_class( klass )
           _parentinstances.find do | parent |
             parent.kind_of?( klass )
@@ -40,11 +40,11 @@ module MultipleInheritance
 
         def copy_class_variables( from, to )
           from.class_variables.each do | class_var |
-            to.class_variable_set( class_var, 
+            to.class_variable_set( class_var,
                 from.class_variable_get( class_var ) )
           end
         end
-          
+
         def copy_class_variables_to_parent( parent_class )
           copy_class_variables( self.class, parent_class )
         end
@@ -52,14 +52,14 @@ module MultipleInheritance
         def copy_class_variables_from_parent( parent_class )
           copy_class_variables( parent_class, self.class )
         end
-        
+
         def copy_instance_variables( from, to )
           from.instance_variables.each do | inst_var |
-            to.instance_variable_set( inst_var, 
+            to.instance_variable_set( inst_var,
                 from.instance_variable_get( inst_var ) )
           end
         end
-        
+
         def copy_instance_variables_to_parent( parent_instance )
           copy_instance_variables( self, parent_instance )
         end
@@ -67,7 +67,7 @@ module MultipleInheritance
         def copy_instance_variables_from_parent( parent_instance )
           copy_instance_variables( parent_instance, self )
         end
-   
+
         def parent_call( parent_instance, &block )
           copy_class_variables_to_parent( parent_instance.class )
           copy_instance_variables_to_parent( parent_instance )
@@ -76,11 +76,11 @@ module MultipleInheritance
           copy_class_variables_from_parent( parent_instance.class )
           value
         end
-        
+
         def send( method_name, *arguments, &block )
-          if parent_instance = parent_instance_for_instance_method( 
-                                                                method_name ) 
-            parent_call( parent_instance ) do 
+          if parent_instance = parent_instance_for_instance_method(
+                                                                method_name )
+            parent_call( parent_instance ) do
               parent_instance.send( method_name, *arguments, &block )
             end
           else
@@ -89,15 +89,15 @@ module MultipleInheritance
         end
 
         def method_missing( method_name, *arguments, &block )
-          parent_instance = parent_instance_for_instance_method( 
+          parent_instance = parent_instance_for_instance_method(
                 :method_missing, _parentinstances.first )
-          parent_call( parent_instance ) do 
+          parent_call( parent_instance ) do
             parent_instance.method_missing( method_name , *arguments, &block )
           end
         end
 
         def respond_to?( meth )
-          if _parentinstances.find { |p| p.respond_to? meth } 
+          if _parentinstances.find { |p| p.respond_to? meth }
             true
           else
             super
@@ -113,19 +113,19 @@ module MultipleInheritance
           protected :_parentklasses
 
           attr_accessor :_lookup_cache
-          
+
           def to_s
-            if _parentklasses 
+            if _parentklasses
               "MultipleInheritance[ " + superclasses.join( ", " ) + " ]"
             else
               super
             end
           end
-          
+
           def superclasses
             _parentklasses || superclass._parentklasses
           end
-          
+
           def ancestors
             superclasses.collect { | klass |
               klass.ancestors
@@ -133,7 +133,7 @@ module MultipleInheritance
           end
 
           def inherited( subklass )
-            superclasses.each do | klass | 
+            superclasses.each do | klass |
               klass.class_eval do
                 inherited( subklass )
               end
@@ -142,10 +142,10 @@ module MultipleInheritance
           end
 
           def parent_class_for_instance_method( method_name_sym, if_nil = nil )
-            ( superclass._lookup_cache[:instance_methods][method_name_sym] ||= 
+            ( superclass._lookup_cache[:instance_methods][method_name_sym] ||=
               _parent_class_for_instance_method( method_name_sym ) ) || if_nil
           end
-          
+
           def _parent_class_for_instance_method( method_name_sym )
             method_name = method_name_sym.to_s
             ancestors.find do | ancestor |
@@ -156,9 +156,9 @@ module MultipleInheritance
               ancestor.private_instance_methods( false ).include?( method_name )
             end
           end
-          
+
           def parent_class_for_class_method( method_name_sym, if_nil = nil )
-            ( superclass._lookup_cache[:class_methods][method_name_sym] ||= 
+            ( superclass._lookup_cache[:class_methods][method_name_sym] ||=
               _parent_class_for_class_method( method_name_sym ) ) || if_nil
           end
 
@@ -177,7 +177,7 @@ module MultipleInheritance
               end
               right_klass.const_get( constant_name )
             else
-              parent_class_for_class_method( 
+              parent_class_for_class_method(
                   :const_missing ).const_missing( constant_name )
             end
           end
@@ -204,20 +204,20 @@ module MultipleInheritance
           end
         end
       end
-      
-      # we need to save the parent classes so they can be initialized when 
+
+      # we need to save the parent classes so they can be initialized when
       # our class is initialized
-      c.class_eval do 
-        _lookup_cache = { 
-            :class_methods => {}, 
-            :instance_methods => {} } 
-        @_parentklasses = superklasses 
+      c.class_eval do
+        _lookup_cache = {
+            :class_methods => {},
+            :instance_methods => {} }
+        @_parentklasses = superklasses
       end
 
       # register all implemented calls up to Object in this class to use send
       c.ancestors.each do | ancestor |
-        break if ancestor == c.superclass 
-        
+        break if ancestor == c.superclass
+
         ancestor.public_instance_methods( false ).each do | method_name |
           c.define_blank_method( method_name, :public )
         end
@@ -235,7 +235,7 @@ module MultipleInheritance
       klass.instance_eval %Q{
         alias :#{old_method_added} :method_added
         def method_added( method_name )
-          ObjectSpace._id2ref( #{mi_klass.object_id} ).define_blank_method( 
+          ObjectSpace._id2ref( #{mi_klass.object_id} ).define_blank_method(
               method_name )
           #{old_method_added}( method_name )
         end
